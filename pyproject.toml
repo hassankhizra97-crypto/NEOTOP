@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "neotop"
+version = "0.1.0"
+description = "A cyberpunk terminal system monitor"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+    { name = "khizra" }
+]
+
+
+[project.scripts]
+neotop = "neotop.cli:main"
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/neotop"]
