@@ -57,14 +57,17 @@ def monitor_processes():
     # 4. Highest CPU first
     processes.sort(key=lambda x: x["cpu_percent"], reverse=True)
 
-    # 5. Top 5
-    print(f"Top 5 Processes by CPU Usage:")
+    print("Top 5 Processes by CPU:")
+    print()
+    print(f"{'PID':<10}{'Name':<20}{'CPU'}")
     for process in processes[:5]:
-        print(f" PID: {process['pid']}")
-        print(f" Name: {process['name']}")
-        print(f" CPU: {process['cpu_percent']}%")
+         print(
+        f"{process['pid']:<10}"
+        f"{process['name']:<20}"
+        f"{process['cpu_percent']:.1f}%"
+    )
 
-
+         
 def start_monitoring():
     while True:
         print("\n")
