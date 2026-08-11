@@ -112,3 +112,31 @@ def get_disk_io():
         "read_bytes_per_sec": read_rate,
         "write_bytes_per_sec": write_rate,
     }
+
+
+previous_net=psutil.net_io_counters()
+previous_time=time.time()
+def get_network_io():
+
+     current_net=psutil.net_io_counters()
+     current_time=time.time()
+
+     elapsed=current_time-previous_time
+
+     bytes_sent=current_net.bytes_sent-previous_net.bytes_sent
+     bytes_recv=current_net.bytes_recv-previous_net.bytes_recv
+
+     sent_rate=bytes_sent/elapsed
+     recv_rate=bytes_recv/elapsed
+
+     previous_net=current_net
+     previous_time=current_time
+
+     return{
+          
+         "bytes_sent_per_sec":sent_rate,
+         "bytes_recv_per_sec":recv_rate
+     }
+
+
+     
