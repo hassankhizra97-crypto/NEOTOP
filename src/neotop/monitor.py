@@ -1,6 +1,8 @@
 import psutil
 import time
 from colors import PURPLE, CYAN, MAGENTA, LIME, PINK, YELLOW, GREEN, RED, WHITE, GRAY, RESET
+import sys
+import time
 
 # ============================================================
 # Previous samples for disk and network rate calculations
@@ -193,110 +195,126 @@ def get_network_io():
 # Display / monitoring
 # ============================================================
 
+import sys
+import time
+
+# --- ANSI control sequences -------------------------------------------------
+ALT_SCREEN_ON  = "\x1b[?1049h"   # switch to the alternate screen buffer
+ALT_SCREEN_OFF = "\x1b[?1049l"   # switch back to the normal buffer (restores scrollback)
+HIDE_CURSOR    = "\x1b[?25l"
+SHOW_CURSOR    = "\x1b[?25h"
+CURSOR_HOME    = "\x1b[H"        # move cursor to row 1, col 1
+CLEAR_TO_END   = "\x1b[J"        # erase from cursor to end of screen (\x1b[0J)
+
+
 def start_monitoring():
+    # Enter the alt-screen buffer once, hide the cursor. This is the same
+    # trick htop/vim/less use so their UI paints in place and never leaks
+    # into (or gets pushed off by) your shell's scrollback history.
+    sys.stdout.write(ALT_SCREEN_ON + HIDE_CURSOR)
+    sys.stdout.flush()
 
-    print(f"{MAGENTA}==========={RESET}")
-    print(f"{PINK}System Monitor{RESET}")
-    print(f"{MAGENTA}==========={RESET}")
-    print()
-
-    while True:
-
-        
-    
-        cpu = get_cpu()
-
-        print(f"{PURPLE}CPU{RESET}: {CYAN}{cpu['aggregate']}%{RESET}")
-
-        print(f"{PURPLE}Per Core CPU Usage:{RESET}")
-
-        for i, usage in enumerate(cpu["per_core"]):
-            print(f"{GREEN}Core {i}{RESET}: {CYAN}{usage}%{RESET}")
-
+    try:
+        print(f"{MAGENTA}==========={RESET}")
+        print(f"{PINK}System Monitor{RESET}")
+        print(f"{MAGENTA}==========={RESET}")
         print()
 
+        while True:
+            frame = []  # build the entire frame first, write it in ONE shot
 
-        # ---------------- Memory ----------------
+            # ---------------- CPU ----------------
+            cpu = get_cpu()
+            frame.append(f"{PURPLE}CPU{RESET}: {CYAN}{cpu['aggregate']}%{RESET}")
+            frame.append(f"{PURPLE}Per Core CPU Usage:{RESET}")
+            for i, usage in enumerate(cpu["per_core"]):
+                frame.append(f"{GREEN}Core {i}{RESET}: {CYAN}{usage}%{RESET}")
+            frame.append("")
 
-        memory = get_memory()
-
-        print(
-            f"{PINK}Total Memory{RESET}: "
-            f"{CYAN}{memory['total'] / (1024 ** 3):.2f} GB{RESET}"
-        )
-
-        print(
-            f"{MAGENTA}Available Memory:{RESET} "
-            f"{CYAN}{memory['available'] / (1024 ** 3):.2f} GB{RESET}"
-        )
-
-        print(
-            f"{YELLOW}Used Memory:{RESET} "
-            f"{CYAN}{memory['used'] / (1024 ** 3):.2f} GB{RESET}"
-        )
-
-        print(
-            f"{GREEN}Memory Usage:{RESET} "
-            f"{CYAN}{memory['percent']}%{RESET}"
-        )
-
-        print()
-
-
-        # ---------------- Processes ----------------
-
-        processes = get_top_processes(5)
-
-        print(f"{RED}Top 5 Processes by CPU:{RESET}")
-        print()
-
-        print(f"{LIME}{'PID':<10}{RESET}{PINK}{'Name':<20}{RESET}{RED}{'CPU':<10}{RESET}{LIME}{'Memory'}{RESET}")
-
-        for process in processes:
-            print(
-                f"{PINK}{process['pid']:<10}{RESET}"
-                f"{YELLOW}{process['name']:<20}{RESET}"
-                f"{LIME}{process['cpu_percent']:<10.1f}{RESET}"
-                f"{PURPLE}{process['memory_percent']:.1f}{RESET}{GRAY}%{RESET}"
+            # ---------------- Memory ----------------
+            memory = get_memory()
+            frame.append(
+                f"{PINK}Total Memory{RESET}: "
+                f"{CYAN}{memory['total'] / (1024 ** 3):.2f} GB{RESET}"
             )
+            frame.append(
+                f"{MAGENTA}Available Memory:{RESET} "
+                f"{CYAN}{memory['available'] / (1024 ** 3):.2f} GB{RESET}"
+            )
+            frame.append(
+                f"{YELLOW}Used Memory:{RESET} "
+                f"{CYAN}{memory['used'] / (1024 ** 3):.2f} GB{RESET}"
+            )
+            frame.append(
+                f"{GREEN}Memory Usage:{RESET} "
+                f"{CYAN}{memory['percent']}%{RESET}"
+            )
+            frame.append("")
 
-        print()
+            # ---------------- Processes ----------------
+            processes = get_top_processes(5)
+            frame.append(f"{RED}Top 5 Processes by CPU:{RESET}")
+            frame.append("")
+            frame.append(
+                f"{LIME}{'PID':<10}{RESET}"
+                f"{PINK}{'Name':<20}{RESET}"
+                f"{RED}{'CPU':<10}{RESET}"
+                f"{LIME}{'Memory'}{RESET}"
+            )
+            for process in processes:
+                frame.append(
+                    f"{PINK}{process['pid']:<10}{RESET}"
+                    f"{YELLOW}{process['name']:<20}{RESET}"
+                    f"{LIME}{process['cpu_percent']:<10.1f}{RESET}"
+                    f"{PURPLE}{process['memory_percent']:.1f}{RESET}"
+                    f"{GRAY}%{RESET}"
+                )
+            frame.append("")
+
+            # ---------------- Disk ----------------
+            disk = get_disk_io()
+            frame.append(
+                f"{MAGENTA}Read rate: {RESET} "
+                f"{MAGENTA}{disk['read_rate']:.2f}{RESET} "
+                f"{CYAN}bytes/sec{RESET}"
+            )
+            frame.append(
+                f"{CYAN}Write rate:{RESET} "
+                f"{PINK}{disk['write_rate']:.2f}{RESET} "
+                f"{CYAN}bytes/sec{RESET}"
+            )
+            frame.append("")
+
+            # ---------------- Network ----------------
+            network = get_network_io()
+            frame.append(
+                f"{YELLOW}Sent rate: {RESET}    "
+                f"{GREEN}{network['sent_rate']:.2f} {RESET}"
+                f"{CYAN}bytes/sec{RESET}"
+            )
+            frame.append(
+                f"{RED}Received rate: {RESET} "
+                f"{PINK}{network['received_rate']:.2f} {RESET}"
+                f"{CYAN}bytes/sec{RESET}"
+            )
+            frame.append("")
+            frame.append(f"{LIME}=============================={RESET}")
+
+            # Home the cursor, erase everything below it, then paint the
+            # whole new frame in a single write+flush.
+            sys.stdout.write(CURSOR_HOME + CLEAR_TO_END + "\n".join(frame) + "\n")
+            sys.stdout.flush()
+
+            time.sleep(1)
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        # ALWAYS restore the terminal, even on Ctrl+C or an exception,
+        # or the user's shell will be left in the alt-screen state.
+        sys.stdout.write(SHOW_CURSOR + ALT_SCREEN_OFF)
+        sys.stdout.flush()
 
 
-        # ---------------- Disk ----------------
-
-        disk = get_disk_io()
-
-        print(
-            f"{MAGENTA}Read rate: {RESET} {MAGENTA}{disk['read_rate']:.2f}{RESET} {CYAN}bytes/sec{RESET}"
-        )
-
-        print(
-            f"{CYAN}Write rate:{RESET} {PINK}{disk['write_rate']:.2f}{RESET} {CYAN}bytes/sec{RESET}"
-        )
-
-        print()
-
-
-        # ---------------- Network ----------------
-
-        network = get_network_io()
-
-        print(
-            f"{YELLOW}Sent rate: {RESET}    {GREEN}{network['sent_rate']:.2f} {RESET}{CYAN}bytes/sec{RESET}"
-        )
-
-        print(
-            f"{RED}Received rate: {RESET} {PINK}{network['received_rate']:.2f} {RESET}{CYAN}bytes/sec{RESET}"
-        )
-
-        print()
-
-        print(f"{LIME}=============================={RESET}")
-
-        # Wait before taking the next sample
-        time.sleep(5)
-
-
-if __name__ == "__monitor__":
+if __name__ == "__main__":
     start_monitoring()
