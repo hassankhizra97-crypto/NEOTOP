@@ -83,3 +83,32 @@ def start_monitoring():
 start_monitoring()
 if __name__ == "__monitor__":
     start_monitoring()
+
+
+
+
+_previous_disk = psutil.disk_io_counters()
+_previous_time = time.time()
+
+
+def get_disk_io():
+    global _previous_disk, _previous_time
+
+    current_disk = psutil.disk_io_counters()
+    current_time = time.time()
+
+    elapsed = current_time - _previous_time
+
+    read_bytes = current_disk.read_bytes - _previous_disk.read_bytes
+    write_bytes = current_disk.write_bytes - _previous_disk.write_bytes
+
+    read_rate = read_bytes / elapsed
+    write_rate = write_bytes / elapsed
+
+    _previous_disk = current_disk
+    _previous_time = current_time
+
+    return {
+        "read_bytes_per_sec": read_rate,
+        "write_bytes_per_sec": write_rate,
+    }
