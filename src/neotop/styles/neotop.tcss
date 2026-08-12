@@ -1,0 +1,151 @@
+Screen {
+    background: #08000d;
+    color: #f5f5f5;
+}
+
+Grid {
+    grid-size: 2 3;
+    grid-gutter: 1;
+    padding: 1;
+}
+
+CpuWidget {
+    border: solid #00f5ff;
+    padding: 1;
+    height: 100%;
+}
+
+MemoryWidget {
+    border: solid #ff00ff;
+    padding: 1;
+    height: 100%;
+}
+
+ProcessTableWidget {
+    border: solid #cc11f0;
+    padding: 1;
+    height: 100%;
+}
+
+DiskWidget {
+    border: solid #39ff14;
+    padding: 1;
+    height: 100%;
+}
+
+NetworkWidget {
+    border: solid #ffff00;
+    padding: 1;
+    height: 100%;
+}
+
+
+/* =========================
+   Titles
+   ========================= */
+
+#cpu-title,
+#memory-title,
+#process-title,
+#disk-title,
+#network-title {
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+
+/* =========================
+   CPU
+   ========================= */
+
+#cpu-title {
+    color: #00f5ff;
+}
+
+#cpu-usage {
+    color: #00f5ff;
+}
+
+#cpu-progress {
+    margin-bottom: 1;
+}
+
+#cpu-history-label {
+    color: #cc11f0;
+}
+
+#core-title {
+    color: #00f5ff;
+    margin-top: 1;
+}
+
+.core-usage {
+    color: #39ff14;
+}
+
+
+/* =========================
+   Memory
+   ========================= */
+
+#memory-title {
+    color: #ff00ff;
+}
+
+#memory-total,
+#memory-used,
+#memory-available,
+#memory-percent {
+    margin-bottom: 1;
+}
+
+#memory-percent {
+    color: #00f5ff;
+}
+
+
+/* =========================
+   Processes
+   ========================= */
+
+#process-title {
+    color: #cc11f0;
+}
+
+#process-table {
+    height: 1fr;
+}
+
+
+/* =========================
+   Disk
+   ========================= */
+
+#disk-title {
+    color: #39ff14;
+}
+
+#disk-read {
+    color: #00f5ff;
+}
+
+#disk-write {
+    color: #ff00ff;
+}
+
+
+/* =========================
+   Network
+   ========================= */
+
+#network-title {
+    color: #ffff00;
+}
+
+#network-sent {
+    color: #39ff14;
+}
+
+#network-received {
+    color: #ff00ff;
+}

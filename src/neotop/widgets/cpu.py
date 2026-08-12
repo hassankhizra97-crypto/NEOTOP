@@ -7,8 +7,8 @@ from textual.widget import Widget
 class CpuWidget(Widget):
     """Displays aggregate and per-core CPU usage."""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.cpu_history = []
 

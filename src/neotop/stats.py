@@ -1,9 +1,16 @@
 import psutil
 import time
-from colors import PURPLE, CYAN, MAGENTA, LIME, PINK, YELLOW, GREEN, RED, WHITE, GRAY, RESET
+
 import sys
 import time
 
+
+def initialize_processes():
+    for process in psutil.process_iter(["pid", "name"]):
+        try:
+            process.cpu_percent(None)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
 # ============================================================
 # Previous samples for disk and network rate calculations
 # ============================================================
@@ -51,17 +58,6 @@ def get_memory():
 def get_top_processes(n):
     processes = []
 
-    # First measurement
-    for process in psutil.process_iter(
-        ["pid", "name", "memory_percent"]
-    ):
-        try:
-            process.cpu_percent(None)
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            pass
-
-
-    # Second measurement
     for process in psutil.process_iter(
         ["pid", "name", "memory_percent"]
     ):
@@ -72,21 +68,18 @@ def get_top_processes(n):
                 "pid": process.info["pid"],
                 "name": process.info["name"],
                 "cpu_percent": cpu_percent,
-                "memory_percent": process.info["memory_percent"]
+                "memory_percent": process.info["memory_percent"],
             })
 
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
 
-    # Highest CPU first
     processes.sort(
         key=lambda x: x["cpu_percent"],
         reverse=True
     )
 
     return processes[:n]
-
-
 # ============================================================
 # Disk I/O
 # ============================================================
